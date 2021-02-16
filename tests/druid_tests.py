@@ -14,15 +14,19 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+# isort:skip_file
 """Unit tests for Superset"""
 import json
 import unittest
 from datetime import datetime
 from unittest.mock import Mock, patch
 
+from tests.test_app import app
+
 from superset import db, security_manager
 
 from .base_tests import SupersetTestCase
+
 
 try:
     from superset.connectors.druid.models import (
@@ -86,19 +90,19 @@ GB_RESULT_SET = [
     {
         "version": "v1",
         "timestamp": "2012-01-01T00:00:00.000Z",
-        "event": {"dim1": "Canada", "dim2": "boy", "metric1": 12345678},
+        "event": {"dim1": "Canada", "dim2": "boy", "count": 12345678},
     },
     {
         "version": "v1",
         "timestamp": "2012-01-01T00:00:00.000Z",
-        "event": {"dim1": "USA", "dim2": "girl", "metric1": 12345678 / 2},
+        "event": {"dim1": "USA", "dim2": "girl", "count": 12345678 / 2},
     },
 ]
 
 DruidCluster.get_druid_version = lambda _: "0.9.1"  # type: ignore
 
 
-class DruidTests(SupersetTestCase):
+class TestDruid(SupersetTestCase):
 
     """Testing interactions with Druid"""
 
@@ -127,9 +131,7 @@ class DruidTests(SupersetTestCase):
         )
         if cluster:
             for datasource in (
-                db.session.query(DruidDatasource)
-                .filter_by(cluster_name=cluster.cluster_name)
-                .all()
+                db.session.query(DruidDatasource).filter_by(cluster_id=cluster.id).all()
             ):
                 db.session.delete(datasource)
 
@@ -174,7 +176,7 @@ class DruidTests(SupersetTestCase):
             "viz_type": "table",
             "granularity": "one+day",
             "druid_time_origin": "",
-            "since": "7+days+ago",
+            "since": "7 days ago",
             "until": "now",
             "row_limit": 5000,
             "include_search": "false",
@@ -191,7 +193,7 @@ class DruidTests(SupersetTestCase):
             "viz_type": "table",
             "granularity": "one+day",
             "druid_time_origin": "",
-            "since": "7+days+ago",
+            "since": "7 days ago",
             "until": "now",
             "row_limit": 5000,
             "include_search": "false",
@@ -297,6 +299,7 @@ class DruidTests(SupersetTestCase):
     @unittest.skipUnless(
         SupersetTestCase.is_module_installed("pydruid"), "pydruid not installed"
     )
+    @unittest.skipUnless(app.config["DRUID_IS_ACTIVE"], "DRUID_IS_ACTIVE is false")
     def test_filter_druid_datasource(self):
         CLUSTER_NAME = "new_druid"
         cluster = self.get_or_create(
@@ -353,9 +356,7 @@ class DruidTests(SupersetTestCase):
         )
         if cluster:
             for datasource in (
-                db.session.query(DruidDatasource)
-                .filter_by(cluster_name=cluster.cluster_name)
-                .all()
+                db.session.query(DruidDatasource).filter_by(cluster_id=cluster.id).all()
             ):
                 db.session.delete(datasource)
 
@@ -534,7 +535,7 @@ class DruidTests(SupersetTestCase):
 
         form_data = {
             "viz_type": "table",
-            "since": "7+days+ago",
+            "since": "7 days ago",
             "until": "now",
             "metrics": ["count"],
             "groupby": [],

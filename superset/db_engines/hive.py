@@ -14,11 +14,19 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-# pylint: disable=C,R,W
+from typing import Optional, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from pyhive.hive import Cursor
+    from TCLIService.ttypes import TFetchOrientation
 
+# pylint: disable=protected-access
 # TODO: contribute back to pyhive.
-def fetch_logs(self, max_rows=1024, orientation=None):
+def fetch_logs(
+    self: "Cursor",
+    _max_rows: int = 1024,
+    orientation: Optional["TFetchOrientation"] = None,
+) -> str:
     """Mocked. Retrieve the logs produced by the execution of the query.
     Can be called multiple times to fetch the logs produced after
     the previous call.
@@ -29,7 +37,7 @@ def fetch_logs(self, max_rows=1024, orientation=None):
     """
     from pyhive import hive
     from TCLIService import ttypes
-    from thrift import Thrift  # pylint: disable=import-error
+    from thrift import Thrift
 
     orientation = orientation or ttypes.TFetchOrientation.FETCH_NEXT
     try:

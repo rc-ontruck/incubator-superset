@@ -14,11 +14,16 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+from unittest import mock
+
+import pytest
+
 from superset.db_engine_specs.clickhouse import ClickHouseEngineSpec
-from tests.db_engine_specs.base_tests import DbEngineSpecTestCase
+from superset.db_engine_specs.exceptions import SupersetDBAPIDatabaseError
+from tests.db_engine_specs.base_tests import TestDbEngineSpec
 
 
-class ClickHouseTestCase(DbEngineSpecTestCase):
+class TestClickHouseDbEngineSpec(TestDbEngineSpec):
     def test_convert_dttm(self):
         dttm = self.get_dttm()
 
@@ -30,3 +35,13 @@ class ClickHouseTestCase(DbEngineSpecTestCase):
             ClickHouseEngineSpec.convert_dttm("DATETIME", dttm),
             "toDateTime('2019-01-02 03:04:05')",
         )
+
+    def test_execute_connection_error(self):
+        from urllib3.exceptions import NewConnectionError
+
+        cursor = mock.Mock()
+        cursor.execute.side_effect = NewConnectionError(
+            "Dummypool", message="Exception with sensitive data"
+        )
+        with pytest.raises(SupersetDBAPIDatabaseError) as ex:
+            ClickHouseEngineSpec.execute(cursor, "SELECT col1 from table1")

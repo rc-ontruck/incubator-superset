@@ -14,7 +14,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-# pylint: disable=C,R,W
 
 """
 This is the main entrypoint used by Celery workers. As such,
@@ -29,7 +28,8 @@ from superset.extensions import celery_app
 create_app()
 
 # Need to import late, as the celery_app will have been setup by "create_app()"
-from . import cache, schedules  # isort:skip
+# pylint: disable=wrong-import-position, unused-import
+from . import cache, schedules, scheduler  # isort:skip
 
 # Export the celery app globally for Celery (as run on the cmd line) to find
 app = celery_app

@@ -14,7 +14,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-# pylint: disable=C,R,W
 """Compatibility layer for different database engines
 
 This modules stores logic specific to different database engines. Things
@@ -50,3 +49,7 @@ for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):  # type: igno
             and attribute.engine != ""
         ):
             engines[attribute.engine] = attribute
+
+            # populate engine alias name to engine dictionary
+            for engine_alias in attribute.engine_aliases or []:
+                engines[engine_alias] = attribute
